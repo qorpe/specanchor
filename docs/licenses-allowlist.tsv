@@ -1,0 +1,11 @@
+Microsoft.CodeAnalysis.CSharp	5.6.0	MIT
+Microsoft.SqlServer.TransactSql.ScriptDom	180.78.1	MIT
+JsonSchema.Net	9.4.0	MIT
+Yaml2JsonNode	3.0.1	MIT
+ModelContextProtocol	2.2.0	MIT
+Microsoft.Extensions.Hosting	10.0.11	MIT
+Microsoft.NET.Test.Sdk	17.14.1	MIT
+xunit	2.9.3	Apache-2.0
+xunit.runner.visualstudio	3.1.4	Apache-2.0
+coverlet.collector	6.0.4	MIT
+dotnet-stryker	4.16.0	Apache-2.0

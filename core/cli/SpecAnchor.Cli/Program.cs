@@ -16,6 +16,8 @@ const string Usage = """
       specanchor gate  --discovery <dir> --src <dir> --sql <dir> --schemas <dir> [--changed <file>]
           run all catalog gates locally; --changed (newline-separated file list)
           enables the touch gate
+      specanchor scaffold --rule <file> --out <dir>
+          generate the red acceptance test and the skeleton from one rule card
       specanchor mcp
           serve the index-query and gate tools over stdio (Model Context Protocol)
 
@@ -88,6 +90,24 @@ try
                 ? "specanchor gate: clean — all gates green"
                 : $"specanchor gate: {report.Findings.Count} finding(s)");
             return report.ExitCode;
+        }
+
+        case "scaffold":
+        {
+            if (!options.TryGetValue("--rule", out var ruleFile) ||
+                !options.TryGetValue("--out", out var scaffoldOut))
+            {
+                return Fail();
+            }
+
+            Directory.CreateDirectory(scaffoldOut);
+            foreach (var (fileName, content) in Scaffolder.Scaffold(File.ReadAllText(ruleFile)))
+            {
+                File.WriteAllText(Path.Combine(scaffoldOut, fileName), content);
+                Console.WriteLine($"specanchor scaffold: {fileName}");
+            }
+
+            return 0;
         }
 
         case "mcp":

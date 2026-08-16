@@ -24,6 +24,8 @@ jobs:
           --src rig/legacy-factoring/src
           --sql rig/legacy-factoring/sql
           --schemas core/schemas
+      - name: License gate — every dependency allowlisted
+        run: ./scripts/license-check.sh
       - name: Mutation — the parity calculation core (break at 75)
         run: |
           dotnet tool restore
