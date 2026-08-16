@@ -1,0 +1,10 @@
+{
+  "stryker-config": {
+    "solution": "SpecAnchor.sln",
+    "project": "SpecAnchor.Parity.csproj",
+    "test-projects": ["tests/SpecAnchor.Parity.Tests/SpecAnchor.Parity.Tests.csproj"],
+    "mutation-level": "Standard",
+    "thresholds": { "high": 90, "low": 80, "break": 75 },
+    "reporters": ["progress", "markdown"]
+  }
+}

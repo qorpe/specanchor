@@ -1,3 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using SpecAnchor.Gates;
 using SpecAnchor.Index.CSharp;
@@ -13,6 +16,8 @@ const string Usage = """
       specanchor gate  --discovery <dir> --src <dir> --sql <dir> --schemas <dir> [--changed <file>]
           run all catalog gates locally; --changed (newline-separated file list)
           enables the touch gate
+      specanchor mcp
+          serve the index-query and gate tools over stdio (Model Context Protocol)
 
     exit codes: 0 clean · 1 findings · 2 usage or I/O error
     """;
@@ -83,6 +88,17 @@ try
                 ? "specanchor gate: clean — all gates green"
                 : $"specanchor gate: {report.Findings.Count} finding(s)");
             return report.ExitCode;
+        }
+
+        case "mcp":
+        {
+            var builder = Host.CreateApplicationBuilder();
+            builder.Logging.ClearProviders();
+            builder.Services.AddMcpServer()
+                .WithStdioServerTransport()
+                .WithToolsFromAssembly();
+            await builder.Build().RunAsync();
+            return 0;
         }
 
         default:
