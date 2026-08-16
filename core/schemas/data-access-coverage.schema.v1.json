@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specanchor.dev/schemas/data-access-coverage/v1.json",
+  "title": "specanchor data-access-coverage v1",
+  "description": "Honest coverage accounting for the index. Declaring the gap is worth more than claiming full coverage: when the client asks how confident the analysis is, this artefact is the answer — and an unresolved call site in a calculation path is itself a finding worth reporting.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "call_sites_total", "call_sites_resolved", "by_technology", "unresolved", "runtime_only"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "call_sites_total": { "type": "integer", "minimum": 0 },
+    "call_sites_resolved": { "type": "integer", "minimum": 0 },
+    "by_technology": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["technology", "total", "resolved"],
+        "properties": {
+          "technology": {
+            "enum": ["efcore", "ef6", "linq2sql", "nhibernate", "dapper", "adonet", "typed-dataset", "string-sql", "stored-procedure", "dynamic-sql", "other"]
+          },
+          "total": { "type": "integer", "minimum": 0 },
+          "resolved": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "unresolved": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["file", "line", "reason"],
+        "properties": {
+          "file": { "type": "string", "minLength": 1 },
+          "line": { "type": "integer", "minimum": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      },
+      "description": "Statically unresolvable call sites — reported as blind spots, never skipped silently."
+    },
+    "runtime_only": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Statements seen at runtime capture with no static origin."
+    }
+  }
+}

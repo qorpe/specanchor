@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specanchor.dev/schemas/comparison-policy/v1.json",
+  "title": "specanchor comparison-policy v1",
+  "description": "The parity comparison contract. The known-differences register is what makes parity honest: demanding a byte-exact match produces a gate that gets bypassed within two weeks. Naive equality is forbidden.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "excluded_fields", "tolerances", "known_differences"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "excluded_fields": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Timestamps, sequences, generated identifiers — normalised away by scrubbers."
+    },
+    "tolerances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["field", "type", "value"],
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "type": { "enum": ["absolute", "relative"] },
+          "value": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "rounding": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Expected rounding mode per field group, e.g. { \"commission\": \"half-up\" }."
+    },
+    "known_differences": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description", "accepted_by", "date", "rule_id"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^KD-[0-9]{4}$" },
+          "description": { "type": "string", "minLength": 1 },
+          "accepted_by": { "type": "string", "minLength": 1 },
+          "date": { "type": "string", "format": "date" },
+          "rule_id": { "type": "string", "pattern": "^RULE-[0-9]{4}$" }
+        }
+      },
+      "description": "Every deliberate deviation from legacy behaviour, business-approved and dated. A silent difference is a defect; a recorded one is a decision."
+    }
+  }
+}

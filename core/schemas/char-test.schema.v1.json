@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://specanchor.dev/schemas/char-test/v1.json",
+  "title": "specanchor char-test v1",
+  "description": "A characterization test freezes what the legacy system currently does, without judging whether it is right. The test executed; its result is recorded either way.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["test_id", "rule_id", "target", "method", "sample_size", "result", "schemaVersion"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "test_id": { "type": "string", "pattern": "^CHAR-[0-9]{4}$" },
+    "rule_id": {
+      "type": "string",
+      "pattern": "^RULE-[0-9]{4}$",
+      "description": "The rule this test proves."
+    },
+    "target": { "enum": ["legacy", "new"] },
+    "method": { "enum": ["replay", "synthetic", "recorded_traffic"] },
+    "sample_size": { "type": "integer", "minimum": 1 },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["passed", "failed"],
+      "properties": {
+        "passed": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "failures": {
+      "type": "string",
+      "description": "Description of failures, linked to the rule's open_questions where relevant. A failure that locates an ambiguity precisely is a finding, not a defect."
+    },
+    "tolerance": {
+      "type": "string",
+      "description": "Reference to the comparison policy used."
+    }
+  }
+}
