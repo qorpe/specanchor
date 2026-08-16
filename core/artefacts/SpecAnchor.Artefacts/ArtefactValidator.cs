@@ -49,6 +49,151 @@ public static class ArtefactValidator
         return [new Finding("error", "SA0001", "$", $"document does not parse: {parseError}")];
     }
 
+    /// <summary>
+    /// Validates one ledger-term entry (YAML or JSON) against the schema, the index
+    /// identifiers and the rule catalog. Empty result = the entry may enter the glossary.
+    /// </summary>
+    /// <param name="documentText">The ledger-term entry, YAML or JSON.</param>
+    /// <param name="ledgerSchemaPath">Path to ledger-term.schema.v1.json.</param>
+    /// <param name="csharpIndex">C# index supplying known identifiers.</param>
+    /// <param name="sqlIndex">SQL index supplying known table/column/object names.</param>
+    /// <param name="ruleStatements">Statements of the context's rule catalog.</param>
+    /// <returns>Findings; empty when the entry is valid.</returns>
+    public static IReadOnlyList<Finding> ValidateLedgerTerm(
+        string documentText,
+        string ledgerSchemaPath,
+        CSharpIndex csharpIndex,
+        SqlIndex sqlIndex,
+        IReadOnlyList<string> ruleStatements)
+    {
+        if (!TryParse(documentText, out var node, out var parseError))
+        {
+            return [new Finding("error", "SA0001", "$", $"document does not parse: {parseError}")];
+        }
+
+        var findings = new List<Finding>();
+        findings.AddRange(EvaluateSchema(node, ledgerSchemaPath));
+        if (findings.Count > 0)
+        {
+            return findings;
+        }
+
+        var known = KnownIdentifiers(csharpIndex, sqlIndex);
+        var aliases = node!["aliases_in_code"]!.AsArray();
+        for (var i = 0; i < aliases.Count; i++)
+        {
+            var alias = aliases[i]!.GetValue<string>();
+            if (!known.Contains(alias))
+            {
+                findings.Add(new Finding("error", "SA0201", $"$.aliases_in_code[{i}]",
+                    $"alias '{alias}' resolves to no identifier known to the indexes — " +
+                    "a glossary term with no anchor in code is speculation, not vocabulary"));
+            }
+        }
+
+        var term = node["term"]!.GetValue<string>();
+        if (!ruleStatements.Any(s => s.Contains(term, StringComparison.OrdinalIgnoreCase)))
+        {
+            findings.Add(new Finding("error", "SA0202", "$.term",
+                $"term '{term}' appears in no rule statement — the glossary serves the catalog"));
+        }
+
+        return findings;
+    }
+
+    /// <summary>
+    /// Validates one char-test record (YAML or JSON) against the schema and the rule
+    /// catalog, including arithmetic consistency of the recorded result.
+    /// </summary>
+    /// <param name="documentText">The char-test record, YAML or JSON.</param>
+    /// <param name="charTestSchemaPath">Path to char-test.schema.v1.json.</param>
+    /// <param name="knownRuleIds">rule_ids present in the catalog.</param>
+    /// <returns>Findings; empty when the record is valid.</returns>
+    public static IReadOnlyList<Finding> ValidateCharTest(
+        string documentText,
+        string charTestSchemaPath,
+        IReadOnlyList<string> knownRuleIds)
+    {
+        if (!TryParse(documentText, out var node, out var parseError))
+        {
+            return [new Finding("error", "SA0001", "$", $"document does not parse: {parseError}")];
+        }
+
+        var findings = new List<Finding>();
+        findings.AddRange(EvaluateSchema(node, charTestSchemaPath));
+        if (findings.Count > 0)
+        {
+            return findings;
+        }
+
+        var ruleId = node!["rule_id"]!.GetValue<string>();
+        if (!knownRuleIds.Contains(ruleId, StringComparer.Ordinal))
+        {
+            findings.Add(new Finding("error", "SA0301", "$.rule_id",
+                $"rule '{ruleId}' is not in the catalog — a test must prove an existing rule"));
+        }
+
+        var sampleSize = AsInt(node["sample_size"]!);
+        var passed = AsInt(node["result"]!["passed"]!);
+        var failed = AsInt(node["result"]!["failed"]!);
+        if (passed + failed != sampleSize)
+        {
+            findings.Add(new Finding("error", "SA0302", "$.result",
+                $"passed ({passed}) + failed ({failed}) != sample_size ({sampleSize}) — " +
+                "an arithmetic hole here means the run report cannot be trusted"));
+        }
+
+        return findings;
+    }
+
+    private static HashSet<string> KnownIdentifiers(CSharpIndex csharpIndex, SqlIndex sqlIndex)
+    {
+        var known = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var type in csharpIndex.Types)
+        {
+            known.Add(SimpleName(type.FullName));
+            foreach (var member in type.Members)
+            {
+                var display = member.Name;
+                var parenIndex = display.IndexOf('(', StringComparison.Ordinal);
+                if (parenIndex >= 0)
+                {
+                    display = display[..parenIndex];
+                }
+
+                known.Add(SimpleName(display));
+            }
+        }
+
+        foreach (var table in sqlIndex.Tables)
+        {
+            known.Add(SimpleName(table.Name));
+            foreach (var column in table.Columns)
+            {
+                known.Add(column.Name);
+            }
+        }
+
+        foreach (var procedure in sqlIndex.Procedures)
+        {
+            known.Add(SimpleName(procedure.Name));
+        }
+
+        foreach (var trigger in sqlIndex.Triggers)
+        {
+            known.Add(SimpleName(trigger.Name));
+        }
+
+        return known;
+    }
+
+    private static string SimpleName(string qualified)
+    {
+        var lastDot = qualified.LastIndexOf('.');
+        return lastDot >= 0 ? qualified[(lastDot + 1)..] : qualified;
+    }
+
     private static bool TryParse(string text, out JsonNode? node, out string? error)
     {
         node = null;
