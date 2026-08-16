@@ -51,10 +51,14 @@ docs/               the method: toolset spec, concept reference, playbooks,
 
 ## Status
 
-Pre-PoC. Schemas and the rig are in; the chain (index → rule-extractor →
-char-test-writer → parity → gates) is being built against the rig, in the build order
-above. Nothing here has touched client code yet, by design: every component must catch
-every planted trap in `rig/` first.
+The PoC chain's deterministic spine is in and proven against the rig: the six
+schemas, both index providers, the read/write matrix with its coverage artefact,
+all four discovery skill contracts with the shared self-validation engine, and
+the parity harness (Trap A — the 1-kuruş rounding divergence — is detected,
+classified as rounding, and accepted only through a signed known-difference
+entry, all by test). Next: the gates and the CLI/MCP surface, then the agent-run
+of the skills with the rig's answer key as the eval set. Nothing here has
+touched client code yet, by design.
 
 ## Relationship to Goldpath and to Spec Kit
 

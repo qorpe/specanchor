@@ -42,7 +42,12 @@
           "description": { "type": "string", "minLength": 1 },
           "accepted_by": { "type": "string", "minLength": 1 },
           "date": { "type": "string", "format": "date" },
-          "rule_id": { "type": "string", "pattern": "^RULE-[0-9]{4}$" }
+          "rule_id": { "type": "string", "pattern": "^RULE-[0-9]{4}$" },
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The output field this accepted deviation covers. Without it the register is prose; with it the parity comparator can apply the acceptance mechanically."
+          }
         }
       },
       "description": "Every deliberate deviation from legacy behaviour, business-approved and dated. A silent difference is a defect; a recorded one is a decision."
