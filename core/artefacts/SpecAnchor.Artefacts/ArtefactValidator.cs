@@ -194,30 +194,8 @@ public static class ArtefactValidator
         return lastDot >= 0 ? qualified[(lastDot + 1)..] : qualified;
     }
 
-    private static bool TryParse(string text, out JsonNode? node, out string? error)
-    {
-        node = null;
-        error = null;
-        try
-        {
-            var trimmed = text.TrimStart();
-            if (trimmed.StartsWith('{') || trimmed.StartsWith('['))
-            {
-                node = JsonNode.Parse(text);
-                return node is not null;
-            }
-
-            var stream = new YamlStream();
-            stream.Load(new StringReader(text));
-            node = stream.Documents[0].RootNode.ToJsonNode();
-            return node is not null;
-        }
-        catch (Exception ex)
-        {
-            error = ex.Message;
-            return false;
-        }
-    }
+    private static bool TryParse(string text, out JsonNode? node, out string? error) =>
+        ArtefactDocument.TryParse(text, out node, out error);
 
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, JsonSchema> SchemaCache = new();
 

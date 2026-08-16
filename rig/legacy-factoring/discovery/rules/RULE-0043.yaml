@@ -1,0 +1,14 @@
+rule_id: RULE-0043
+version: 1
+schemaVersion: 1
+context: Factoring.Assignment
+statement: >
+  A Temlik takes legal effect when the notification reaches the debtor.
+source_ref:
+  - file: FactoringApp/Assignment/AssignmentService.cs
+    line_start: 3
+    line_end: 13
+confidence: inferred
+open_questions:
+  - Whether notification date may precede the invoice due date is undocumented.
+disposition: null

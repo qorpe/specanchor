@@ -17,3 +17,10 @@ jobs:
         run: dotnet test SpecAnchor.sln --nologo
       - name: Rig smoke — the fake legacy still runs
         run: dotnet run --project rig/legacy-factoring/src/FactoringApp
+      - name: Gate — the rig discovery sample passes all catalog gates
+        run: >
+          dotnet run --project core/cli/SpecAnchor.Cli -- gate
+          --discovery rig/legacy-factoring/discovery
+          --src rig/legacy-factoring/src
+          --sql rig/legacy-factoring/sql
+          --schemas core/schemas

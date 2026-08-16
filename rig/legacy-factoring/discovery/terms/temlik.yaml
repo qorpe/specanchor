@@ -1,0 +1,12 @@
+term: Temlik
+context: Factoring.Assignment
+definition: >
+  Transfer of a receivable from the supplier to the factor, taking legal effect
+  when notification reaches the debtor.
+aliases_in_code: [AssignmentService, RegisterAssignment, RegisterTransfer, TemlikKayit, IhbarTarihi]
+not_to_be_confused_with: >
+  Devir (Factoring.Accounting) — carrying a balance to the next period.
+  Same Turkish word, different concept, different context.
+source_ref: ["FactoringApp/Assignment/AssignmentService.cs:7"]
+status: proposed
+schemaVersion: 1

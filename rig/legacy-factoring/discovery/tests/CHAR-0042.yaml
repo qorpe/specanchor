@@ -1,0 +1,11 @@
+test_id: CHAR-0042
+rule_id: RULE-0042
+target: legacy
+method: replay
+sample_size: 240
+result: { passed: 238, failed: 2 }
+failures: >
+  Both failures are the records where the minimum commission was bypassed;
+  the behaviour described in RULE-0042.open_questions.
+tolerance: comparison-policy v1
+schemaVersion: 1

@@ -1,0 +1,19 @@
+rule_id: RULE-0042
+version: 1
+schemaVersion: 1
+context: Factoring.Pricing
+statement: >
+  For a domestic recourse factoring transaction, commission is the invoice
+  amount multiplied by the contract rate and never below the contract minimum.
+source_ref:
+  - file: FactoringApp/Pricing/CommissionCalculator.cs
+    line_start: 5
+    line_end: 15
+  - object: dbo.usp_CalculateCommission
+    kind: procedure
+confidence: evidenced
+evidence: CHAR-0042
+open_questions:
+  - Rounding differs between the application and the procedure (1 kurus delta).
+  - The minimum is bypassed for one contract type. Nobody asked so far could explain why.
+disposition: null
