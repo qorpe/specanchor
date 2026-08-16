@@ -17,6 +17,10 @@ namespace SpecAnchor.Index.CSharp;
 /// Publicly visible symbols declared in source with no inbound reference from any other
 /// type. Candidates, not verdicts: a human or a later pass confirms.
 /// </param>
+/// <param name="StringLiterals">
+/// String literals (interpolation holes replaced with @p0, @p1, …) with their containing
+/// member. Raw SQL hiding in strings is resolved from these by the table access matrix.
+/// </param>
 /// <param name="BlindSpots">Compilation errors reported honestly as coverage gaps.</param>
 public sealed record CSharpIndex(
     string Mode,
@@ -24,7 +28,15 @@ public sealed record CSharpIndex(
     IReadOnlyList<TypeEntry> Types,
     IReadOnlyList<CallEdge> CallGraph,
     IReadOnlyList<string> DeadCodeCandidates,
+    IReadOnlyList<LiteralEntry> StringLiterals,
     IReadOnlyList<BlindSpot> BlindSpots);
+
+/// <summary>One string literal and where it lives.</summary>
+/// <param name="Value">Literal text; interpolation holes appear as @p0, @p1, …</param>
+/// <param name="ContainingMember">Display name of the enclosing member.</param>
+/// <param name="File">Path of the file, relative to the indexed root.</param>
+/// <param name="Line">1-based line of the literal.</param>
+public sealed record LiteralEntry(string Value, string ContainingMember, string File, int Line);
 
 /// <summary>One namespace and how many types it declares.</summary>
 /// <param name="Name">Namespace display name; "&lt;global&gt;" for the global namespace.</param>

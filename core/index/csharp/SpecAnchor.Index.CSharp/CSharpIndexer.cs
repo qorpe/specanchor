@@ -52,6 +52,7 @@ public static class CSharpIndexer
             .ToList();
 
         var types = new List<TypeEntry>();
+        var literals = new List<LiteralEntry>();
         var callEdges = new HashSet<CallEdge>();
         var referencedFromOtherType = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
         var declaredTypes = new List<INamedTypeSymbol>();
@@ -62,6 +63,7 @@ public static class CSharpIndexer
             var model = compilation.GetSemanticModel(tree);
             CollectDeclarations(tree, model, types, declaredTypes, declaredMembers);
             CollectReferences(tree, model, callEdges, referencedFromOtherType);
+            CollectLiterals(tree, model, literals);
         }
 
         var entryPoint = compilation.GetEntryPoint(CancellationToken.None);
@@ -79,6 +81,9 @@ public static class CSharpIndexer
             Types: types.OrderBy(t => t.FullName, StringComparer.Ordinal).ToList(),
             CallGraph: callEdges.OrderBy(e => e.Caller, StringComparer.Ordinal).ThenBy(e => e.Callee, StringComparer.Ordinal).ToList(),
             DeadCodeCandidates: deadCandidates,
+            StringLiterals: literals
+                .OrderBy(l => l.File, StringComparer.Ordinal).ThenBy(l => l.Line)
+                .ThenBy(l => l.Value, StringComparer.Ordinal).ToList(),
             BlindSpots: blindSpots);
     }
 
@@ -211,6 +216,45 @@ public static class CSharpIndexer
                 referencedFromOtherType.Add(referencedType);
             }
         }
+    }
+
+    private static void CollectLiterals(SyntaxTree tree, SemanticModel model, List<LiteralEntry> literals)
+    {
+        foreach (var node in tree.GetRoot().DescendantNodes())
+        {
+            string? value = node switch
+            {
+                LiteralExpressionSyntax literal when literal.IsKind(SyntaxKind.StringLiteralExpression) =>
+                    literal.Token.ValueText,
+                InterpolatedStringExpressionSyntax interpolated => FlattenInterpolated(interpolated),
+                _ => null,
+            };
+            if (value is null)
+            {
+                continue;
+            }
+
+            var member = model.GetEnclosingSymbol(node.SpanStart)?.ToDisplayString() ?? "<none>";
+            var line = tree.GetLineSpan(node.Span).StartLinePosition.Line + 1;
+            literals.Add(new LiteralEntry(value, member, tree.FilePath, line));
+        }
+    }
+
+    private static string FlattenInterpolated(InterpolatedStringExpressionSyntax interpolated)
+    {
+        var parts = new List<string>();
+        var hole = 0;
+        foreach (var content in interpolated.Contents)
+        {
+            parts.Add(content switch
+            {
+                InterpolatedStringTextSyntax text => text.TextToken.ValueText,
+                InterpolationSyntax => $"@p{hole++}",
+                _ => string.Empty,
+            });
+        }
+
+        return string.Concat(parts);
     }
 
     private static List<string> FindDeadCodeCandidates(
