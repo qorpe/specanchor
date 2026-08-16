@@ -1,0 +1,19 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Test (index provider vs the rig)
+        run: dotnet test SpecAnchor.sln --nologo
+      - name: Rig smoke — the fake legacy still runs
+        run: dotnet run --project rig/legacy-factoring/src/FactoringApp
