@@ -1,0 +1,16 @@
+rule_id: RULE-0003
+version: 1
+schemaVersion: 1
+context: Factoring.Pricing
+statement: >
+  On weekday nights at two o'clock, the commission is recalculated for every
+  invoice that is still in its initial status.
+source_ref:
+  - object: 004_job_NightlyCommissionRecalc.sql
+    kind: job
+confidence: inferred
+disposition: null
+open_questions:
+  - "Each nightly run appends a new commission result for the same still-initial invoice without replacing the previous one — is that an intended history, or a defect?"
+  - "Nothing in this context ever moves an invoice out of its initial status; which process advances invoice status?"
+  - "The recalculation runs on weekdays only — are invoices created before a weekend intended to wait until the next weekday night?"

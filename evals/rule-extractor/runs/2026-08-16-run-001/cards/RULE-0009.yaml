@@ -1,0 +1,17 @@
+rule_id: RULE-0009
+version: 1
+schemaVersion: 1
+context: Factoring.Pricing
+statement: >
+  A year-end rebate amount can be calculated from a monetary total and a
+  whole-number classification.
+source_ref:
+  - file: FactoringApp/Pricing/LegacyRebateCalculator.cs
+    line_start: 5
+    line_end: 14
+confidence: inferred
+disposition: null
+open_questions:
+  - "This code appears unreachable — is the rule live?"
+  - "The index records three decision points but not their conditions — what are the rebate tiers or thresholds?"
+  - "What do the two inputs represent — an annual volume and a contract category, or something else?"

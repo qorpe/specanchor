@@ -1,0 +1,15 @@
+rule_id: RULE-0004
+version: 1
+schemaVersion: 1
+context: Factoring.Risk
+statement: >
+  A newly recorded invoice whose amount exceeds the customer's risk limit is
+  rejected, and the whole recording transaction is undone.
+source_ref:
+  - object: dbo.trg_Invoice_RiskLimit
+    kind: trigger
+confidence: inferred
+disposition: null
+open_questions:
+  - "The check was added in 2011, its reason is lost, and it is kept only because removing it once broke month-end — which month-end process depends on it?"
+  - "The limit is compared against each single invoice amount, not the customer's cumulative outstanding exposure — is per-invoice checking the intended rule?"

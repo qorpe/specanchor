@@ -1,0 +1,15 @@
+rule_id: RULE-0008
+version: 1
+schemaVersion: 1
+context: Factoring.Accounting
+statement: >
+  At the close of a period, the remaining balance is carried over into the
+  next accounting period.
+source_ref:
+  - file: FactoringApp/Accounting/CarryOverService.cs
+    line_start: 5
+    line_end: 8
+confidence: inferred
+disposition: null
+open_questions:
+  - "The carry-over contains one conditional branch whose condition the index does not reveal, and the application demonstrates it with a negative balance — what distinguishes the two cases?"

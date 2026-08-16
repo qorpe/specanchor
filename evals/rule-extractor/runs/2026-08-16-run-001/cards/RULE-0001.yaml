@@ -1,0 +1,14 @@
+rule_id: RULE-0001
+version: 1
+schemaVersion: 1
+context: Factoring.Pricing
+statement: >
+  The commission for a factored invoice is the invoice amount multiplied by
+  the contract's commission rate, rounded to two decimal places.
+source_ref:
+  - object: dbo.usp_CalculateCommission
+    kind: procedure
+confidence: inferred
+disposition: null
+open_questions:
+  - "Rounding relies on the database's default behaviour; is round-half-away-from-zero the intended commercial rounding?"

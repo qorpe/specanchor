@@ -1,0 +1,17 @@
+rule_id: RULE-0006
+version: 1
+schemaVersion: 1
+context: Factoring.Assignment
+statement: >
+  When a receivable is assigned to the factor (Temlik), the assignment is
+  recorded with the invoice, the supplier, and the date the debtor was
+  notified.
+source_ref:
+  - file: FactoringApp/Assignment/AssignmentService.cs
+    line_start: 7
+    line_end: 10
+confidence: inferred
+disposition: null
+open_questions:
+  - "In the recorded database command the notification-date placeholder sits inside quotation marks, so the literal placeholder text rather than the actual date value may be stored — is the notification date persisted correctly?"
+  - "Assignment recordings appear to be queued in memory and counted; when, and by what, are the queued recordings actually written to the database?"

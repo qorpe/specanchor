@@ -1,0 +1,15 @@
+rule_id: RULE-0007
+version: 1
+schemaVersion: 1
+context: Factoring.Assignment
+statement: >
+  An assignment can also be recorded through a transfer operation that
+  identifies only the invoice and the supplier.
+source_ref:
+  - file: FactoringApp/Assignment/TransferHelper.cs
+    line_start: 5
+    line_end: 8
+confidence: inferred
+disposition: null
+open_questions:
+  - "The transfer path receives no notification date yet the recording requires one — what date does this path record, and given that the assignment takes legal effect only when notification reaches the debtor, is that date correct?"

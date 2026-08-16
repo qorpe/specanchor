@@ -1,0 +1,17 @@
+rule_id: RULE-0005
+version: 1
+schemaVersion: 1
+context: Factoring.Pricing
+statement: >
+  While processing invoices, the application itself also computes a commission
+  from the invoice amount, a rate, and the contract category, independently of
+  the nightly database calculation.
+source_ref:
+  - file: FactoringApp/Pricing/CommissionCalculator.cs
+    line_start: 5
+    line_end: 15
+confidence: inferred
+disposition: null
+open_questions:
+  - "The index records three decision points inside the in-application calculation but not their conditions — does it apply the same minimum-commission floor and the same third-category exemption as the database procedure?"
+  - "When the in-application result and the nightly database result disagree, which is authoritative?"

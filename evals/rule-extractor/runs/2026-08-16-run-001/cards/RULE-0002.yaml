@@ -1,0 +1,16 @@
+rule_id: RULE-0002
+version: 1
+schemaVersion: 1
+context: Factoring.Pricing
+statement: >
+  When the computed commission falls below the contract's agreed minimum, the
+  minimum is charged instead, except for contracts of a third, undocumented
+  category, which pay the computed amount.
+source_ref:
+  - object: dbo.usp_CalculateCommission
+    kind: procedure
+confidence: inferred
+disposition: null
+open_questions:
+  - "What is the third contract category? The schema comment names domestic recourse and domestic non-recourse and marks the third as unknown ('???')."
+  - "Is exempting that third category from the minimum-commission floor intentional, or a leftover?"
