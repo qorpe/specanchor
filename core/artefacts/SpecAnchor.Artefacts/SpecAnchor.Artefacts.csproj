@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\index\csharp\SpecAnchor.Index.CSharp\SpecAnchor.Index.CSharp.csproj" />
+    <ProjectReference Include="..\..\index\sql\SpecAnchor.Index.Sql\SpecAnchor.Index.Sql.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" Version="9.4.0" />
+    <PackageReference Include="Yaml2JsonNode" Version="3.0.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>
