@@ -86,6 +86,27 @@ public sealed class RigIndexTests : IClassFixture<RigIndexFixture>
     }
 
     [Fact]
+    public void Trap_B_is_extractable_from_CSharp_the_bypass_condition_is_on_the_decision_surface()
+    {
+        var type = Assert.Single(_fixture.Index.Types,
+            t => t.FullName == "FactoringApp.Pricing.CommissionCalculator");
+        var member = Assert.Single(type.Members, m => m.Name.Contains(".Calculate(", StringComparison.Ordinal));
+        var condition = Assert.Single(member.BranchConditions);
+        Assert.Equal("commission < minCommission && contractType != 3", condition);
+    }
+
+    [Fact]
+    public void The_dead_rebate_calculator_also_exposes_its_branching()
+    {
+        var type = Assert.Single(_fixture.Index.Types,
+            t => t.FullName == "FactoringApp.Pricing.LegacyRebateCalculator");
+        var member = Assert.Single(type.Members,
+            m => m.Name.Contains("CalculateYearEndRebate", StringComparison.Ordinal));
+        Assert.Contains("transactionCount < 50", member.BranchConditions);
+        Assert.Contains("transactionCount >= 200", member.BranchConditions);
+    }
+
+    [Fact]
     public void Namespace_map_covers_the_three_rig_areas()
     {
         var names = _fixture.Index.Namespaces.Select(n => n.Name).ToList();

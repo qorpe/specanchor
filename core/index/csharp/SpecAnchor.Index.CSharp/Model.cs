@@ -58,20 +58,27 @@ public sealed record TypeEntry(
     int LineEnd,
     IReadOnlyList<MemberEntry> Members);
 
-/// <summary>One member declared on a type, with its span and complexity.</summary>
+/// <summary>One member declared on a type, with its span, complexity and decision surface.</summary>
 /// <param name="Name">Member display name including parameters.</param>
 /// <param name="Kind">Method, Constructor or Property.</param>
 /// <param name="File">Path of the declaring file, relative to the indexed root.</param>
 /// <param name="LineStart">1-based first line of the declaration.</param>
 /// <param name="LineEnd">1-based last line of the declaration.</param>
 /// <param name="CyclomaticComplexity">1 plus the number of decision points in the body.</param>
+/// <param name="BranchConditions">
+/// The member's decision surface: every if/while/ternary/switch condition as written,
+/// in syntax order (whitespace collapsed, capped per entry). This is what lets the
+/// rule extractor read a calculation's branching without ever opening the source file —
+/// the C# counterpart of a procedure's parsed AST.
+/// </param>
 public sealed record MemberEntry(
     string Name,
     string Kind,
     string File,
     int LineStart,
     int LineEnd,
-    int CyclomaticComplexity);
+    int CyclomaticComplexity,
+    IReadOnlyList<string> BranchConditions);
 
 /// <summary>A caller → callee edge between two members declared in source.</summary>
 /// <param name="Caller">Display name of the invoking member.</param>

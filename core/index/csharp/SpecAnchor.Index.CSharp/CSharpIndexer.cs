@@ -162,7 +162,8 @@ public static class CSharpIndexer
                     File: tree.FilePath,
                     LineStart: memberSpan.StartLinePosition.Line + 1,
                     LineEnd: memberSpan.EndLinePosition.Line + 1,
-                    CyclomaticComplexity: CyclomaticComplexity(memberNode)));
+                    CyclomaticComplexity: CyclomaticComplexity(memberNode),
+                    BranchConditions: BranchConditions(memberNode)));
             }
 
             var span = tree.GetLineSpan(typeNode.Span);
@@ -296,6 +297,42 @@ public static class CSharpIndexer
         }
 
         return candidates.ToList();
+    }
+
+    private const int MaxConditionLength = 200;
+
+    /// <summary>
+    /// The member's decision surface: condition expressions as written, in syntax order.
+    /// Bounded on purpose — conditions only, never statement bodies, capped per entry —
+    /// so the index exposes branching without becoming a source dump.
+    /// </summary>
+    private static IReadOnlyList<string> BranchConditions(SyntaxNode member)
+    {
+        var conditions = new List<string>();
+        foreach (var node in member.DescendantNodes())
+        {
+            var condition = node switch
+            {
+                IfStatementSyntax s => s.Condition.ToString(),
+                WhileStatementSyntax s => s.Condition.ToString(),
+                ConditionalExpressionSyntax s => s.Condition.ToString(),
+                SwitchStatementSyntax s => s.Expression.ToString(),
+                SwitchExpressionSyntax s => s.GoverningExpression.ToString(),
+                _ => null,
+            };
+            if (condition is null)
+            {
+                continue;
+            }
+
+            var collapsed = string.Join(" ",
+                condition.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+            conditions.Add(collapsed.Length <= MaxConditionLength
+                ? collapsed
+                : collapsed[..MaxConditionLength] + "…");
+        }
+
+        return conditions;
     }
 
     private static int CyclomaticComplexity(SyntaxNode member)
