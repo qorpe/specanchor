@@ -21,3 +21,13 @@ Each item lands in the named document; nothing is postponed without an entry her
 | 13 | **Live execution adapters**: the rig's parity tests reproduce T-SQL semantics in-process; a real engagement needs a replay runner against a running SQL Server (read-only SqlClient, masked corpus) and a runner for the legacy application side. The comparator and policy are unaffected — runners only produce ParityRecord sets. | core/parity |
 | 14 | **Member body surface in the C# index**: SHIPPED 2026-08-17 — every member now carries BranchConditions (if/while/ternary/switch conditions as written, syntax order, whitespace-collapsed, capped per entry; conditions only, never bodies). Trap B's bypass condition is extractable from C# by test. Found by eval run-001; the automated agent-in-CI harness is still owed under #7. | core/index/csharp |
 | 15 | **Spec Kit surface**: verified 2026-08-16 — spec-kit now ships presets (`specify preset add`), extensions (`specify extension add`) and bundles (`specify bundle install`) as FIRST-CLASS mechanisms, exactly the seam toolset-spec §16 designed for. Build the specanchor preset (templates requiring rule_id/source_ref/confidence/disposition/zero open brackets), the extension (index/discover/verify/parity/gate commands calling our CLI) and the bundle during the REHEARSAL, so the templates are shaped by real use; the bank's Python+uv procurement answer decides whether the leg ships to the engagement or the thin CLI shell replaces it. The zero-Spec-Kit rule stands: everything works without it. | toolset-spec §16, new: surface/spec-kit/ |
+
+## 16 · Oracle PL/SQL index adapter'ı — hazırlık planı (2026-08-18)
+
+Tetik: hedef engagement'ın DB motoru sorusu (H1 #1). CDC izi ilişkisel DB'yi kesinleştirdi;
+motor Oracle çıkarsa: SqlIndexer çıktı sözleşmesi AYNEN korunarak (Procedures/Triggers/
+Reads/Writes/BranchCount) ANTLR PL/SQL dilbilgisiyle adapter yazılır — çekirdek ~1-2 hafta,
+keşfin D0'una paralel; keşfi bloklamaz (ilk haftalar C#+doküman+davranış ayaklarında).
+Kapsam raporu adapter gelene dek SQL ayağını "bekliyor" olarak dürüstçe gösterir.
+Package/standalone prosedür dağılımı H1'de sorulur (efor modeli için). db-compare Oracle
+desteği (kendi v2 planı) ile aynı takvim penceresine hizalanır.
