@@ -26,6 +26,8 @@ jobs:
           --schemas core/schemas
       - name: License gate — every dependency allowlisted
         run: ./scripts/license-check.sh
+      - name: Docs freshness — the documents still describe the repository
+        run: ./scripts/docs-freshness.sh
       - name: Mutation — the parity calculation core (break at 75)
         run: |
           dotnet tool restore

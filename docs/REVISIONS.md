@@ -17,17 +17,21 @@ Each item lands in the named document; nothing is postponed without an entry her
 | 9 | **House-YAML justifications**: one-page "standards considered, why none fit" record for lifecycle/state YAML, calendar spec, mapping spec, permission matrix. | toolset-spec §12 appendix |
 | 10 | **SBOM + signed provenance** in CI from day one (CRA Art. 14 obligations apply from 2026-09-11). | new: CI pipeline definition |
 | 11 | **MSBuildWorkspace loader**: the C# index currently builds an ad-hoc semantic compilation (all .cs under a root + runtime references + synthesized implicit usings). Correct for the rig and single-project trees; real client solutions (multi-project, conditions, NuGet references, source generators) need an MSBuildWorkspace-backed loader with per-project blind-spot reporting, per toolset-spec §3. The loader is a seam: the walkers stay unchanged. | core/index/csharp |
-| 12 | **Mutation + license gates on this repo**: ~~mutation~~ SHIPPED — Stryker on the parity core, break 75, score 94.8%, in CI on every push (first run caught real gaps at 66.2%: relative tolerances, missing-record direction, field union — tests added). The **license gate** (dependency license allowlist script) is still owed. | CI pipeline |
+| 12 | ~~**Mutation + license gates on this repo**~~ SHIPPED — mutation: Stryker on the parity core, break 75, score 94.8%, in CI on every push (first run caught real gaps at 66.2%: relative tolerances, missing-record direction, field union — tests added). The **license gate** SHIPPED — `scripts/license-check.sh` checks every dependency against `docs/licenses-allowlist.tsv` and runs in CI on every push. Row closed. | CI pipeline |
 | 13 | **Live execution adapters**: the rig's parity tests reproduce T-SQL semantics in-process; a real engagement needs a replay runner against a running SQL Server (read-only SqlClient, masked corpus) and a runner for the legacy application side. The comparator and policy are unaffected — runners only produce ParityRecord sets. | core/parity |
 | 14 | **Member body surface in the C# index**: SHIPPED 2026-08-17 — every member now carries BranchConditions (if/while/ternary/switch conditions as written, syntax order, whitespace-collapsed, capped per entry; conditions only, never bodies). Trap B's bypass condition is extractable from C# by test. Found by eval run-001; the automated agent-in-CI harness is still owed under #7. | core/index/csharp |
 | 15 | **Spec Kit surface**: verified 2026-08-16 — spec-kit now ships presets (`specify preset add`), extensions (`specify extension add`) and bundles (`specify bundle install`) as FIRST-CLASS mechanisms, exactly the seam toolset-spec §16 designed for. Build the specanchor preset (templates requiring rule_id/source_ref/confidence/disposition/zero open brackets), the extension (index/discover/verify/parity/gate commands calling our CLI) and the bundle during the REHEARSAL, so the templates are shaped by real use; the bank's Python+uv procurement answer decides whether the leg ships to the engagement or the thin CLI shell replaces it. The zero-Spec-Kit rule stands: everything works without it. | toolset-spec §16, new: surface/spec-kit/ |
 
-## 16 · Oracle PL/SQL index adapter'ı — hazırlık planı (2026-08-18)
+## 16 · Oracle PL/SQL index adapter — readiness plan (2026-08-18)
 
-Tetik: hedef engagement'ın DB motoru sorusu (H1 #1). CDC izi ilişkisel DB'yi kesinleştirdi;
-motor Oracle çıkarsa: SqlIndexer çıktı sözleşmesi AYNEN korunarak (Procedures/Triggers/
-Reads/Writes/BranchCount) ANTLR PL/SQL dilbilgisiyle adapter yazılır — çekirdek ~1-2 hafta,
-keşfin D0'una paralel; keşfi bloklamaz (ilk haftalar C#+doküman+davranış ayaklarında).
-Kapsam raporu adapter gelene dek SQL ayağını "bekliyor" olarak dürüstçe gösterir.
-Package/standalone prosedür dağılımı H1'de sorulur (efor modeli için). db-compare Oracle
-desteği (kendi v2 planı) ile aynı takvim penceresine hizalanır.
+Trigger: the target engagement's database-engine question (H1 #1). The CDC trail settled
+that it is a relational database; if the engine turns out to be Oracle, an adapter is
+written against an ANTLR PL/SQL grammar while the `SqlIndexer` output contract is kept
+EXACTLY as it is (Procedures/Triggers/Reads/Writes/BranchCount) — roughly one to two weeks
+for the core, running in parallel with D0 of discovery. It does not block discovery: the
+first weeks stand on the C#, document and behaviour legs.
+
+Until the adapter arrives, the coverage report shows the SQL leg honestly as *waiting*
+rather than as covered. The split between packaged and standalone procedures is asked in
+H1, because it drives the effort model. This aligns to the same calendar window as
+db-compare's own Oracle support (which has its own v2 plan).

@@ -56,9 +56,29 @@ schemas, both index providers, the read/write matrix with its coverage artefact,
 all four discovery skill contracts with the shared self-validation engine, and
 the parity harness (Trap A — the 1-kuruş rounding divergence — is detected,
 classified as rounding, and accepted only through a signed known-difference
-entry, all by test). Next: the gates and the CLI/MCP surface, then the agent-run
-of the skills with the rig's answer key as the eval set. Nothing here has
-touched client code yet, by design.
+entry, all by test). The gates and the CLI are in too: every push runs the four
+verbs below against the rig's discovery sample and fails the build if a catalog
+gate rejects it.
+
+What is still owed: the agent-run of the skills with the rig's answer key as the
+eval set, and the rows open in [docs/REVISIONS.md](docs/REVISIONS.md). Nothing
+here has touched client code yet, by design.
+
+## The CLI
+
+```
+specanchor index    --src <dir> --sql <dir> --out <dir>
+specanchor gate     --discovery <dir> --src <dir> --sql <dir> --schemas <dir> [--changed <file>]
+specanchor scaffold --rule <file> --out <dir>
+specanchor mcp
+
+exit codes: 0 clean · 1 findings · 2 usage or I/O error
+```
+
+`specanchor mcp` is how an agent reaches the index: it serves the same deterministic
+answers over stdio, so a skill asks the engine instead of reading the repository. That
+is the mechanism behind "the LLM never sees the raw repository" above — register it like
+any stdio MCP server.
 
 ## Relationship to Goldpath and to Spec Kit
 
