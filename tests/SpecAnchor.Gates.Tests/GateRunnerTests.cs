@@ -37,8 +37,19 @@ public sealed class GateFixture
 
     public SqlIndex Sql { get; }
 
+    /// <summary>The rig's planted trap specimens, kept outside the discovery sample.</summary>
+    public string TrapSpecimensDir => Path.Combine(RepoRoot, "rig", "legacy-factoring", "trap-specimens");
+
     /// <summary>Copies the rig discovery sample into a temp dir and applies one mutation.</summary>
     public string MutatedDiscovery(string relativeFile, Func<string, string> mutate)
+    {
+        var temp = CopiedDiscovery();
+        Mutate(temp, relativeFile, mutate);
+        return temp;
+    }
+
+    /// <summary>Copies the rig discovery sample into a fresh temp dir.</summary>
+    public string CopiedDiscovery()
     {
         var temp = Path.Combine(Path.GetTempPath(), "specanchor-gates-" + Guid.NewGuid().ToString("N"));
         foreach (var file in Directory.EnumerateFiles(DiscoveryDir, "*.*", SearchOption.AllDirectories))
@@ -48,9 +59,14 @@ public sealed class GateFixture
             File.Copy(file, target);
         }
 
-        var path = Path.Combine(temp, relativeFile);
-        File.WriteAllText(path, mutate(File.ReadAllText(path)));
         return temp;
+    }
+
+    /// <summary>Rewrites one file of a copied discovery folder in place.</summary>
+    public static void Mutate(string discovery, string relativeFile, Func<string, string> mutate)
+    {
+        var path = Path.Combine(discovery, relativeFile);
+        File.WriteAllText(path, mutate(File.ReadAllText(path)));
     }
 }
 

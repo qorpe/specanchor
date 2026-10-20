@@ -42,7 +42,7 @@ core/
   gates/          analyzers and CI steps   (build order #7)
   cli/            specanchor CLI + MCP     (build order #8+)
 rig/
-  legacy-factoring/  the fake legacy system with four planted traps — the acceptance
+  legacy-factoring/  the fake legacy system with five planted traps — the acceptance
                      test of the whole chain and the eval corpus for every skill.
                      See rig/legacy-factoring/TRAPS.md (the answer key).
 docs/               the method: toolset spec, concept reference, playbooks,
@@ -58,7 +58,13 @@ the parity harness (Trap A — the 1-kuruş rounding divergence — is detected,
 classified as rounding, and accepted only through a signed known-difference
 entry, all by test). The gates and the CLI are in too: every push runs the four
 verbs below against the rig's discovery sample and fails the build if a catalog
-gate rejects it.
+gate rejects it. That includes the spec gate, which closes rule → spec → test: a spec
+must derive from a rule in the catalog, count its own `[OPEN — ...]` brackets honestly,
+keep every question its rule's domain expert has not yet decided as an open bracket
+(Trap E), and have every clause cited by a characterization test. Each spec that passes
+is also reported READY or NOT READY against the Definition of Ready; that is a status,
+not a finding, so it does not change the exit code. The boundary and drift gates in
+toolset-spec §6 are not built yet.
 
 What is still owed: the agent-run of the skills with the rig's answer key as the
 eval set, and the rows open in [docs/REVISIONS.md](docs/REVISIONS.md). Nothing

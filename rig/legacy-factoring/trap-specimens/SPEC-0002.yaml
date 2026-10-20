@@ -1,0 +1,15 @@
+# Trap E specimen — see TRAPS.md. Kept OUT of discovery/ so the rig sample stays green;
+# the gate tests drop it into discovery/specs/ and expect it to be rejected.
+spec_id: SPEC-0002
+schemaVersion: 1
+rule_ids: [RULE-0042]
+notation: dmn
+body: |
+  Decision: commission (hit policy: first)
+  | clause | contract type | calculated vs minimum | commission                       |
+  |--------|---------------|-----------------------|----------------------------------|
+  | [C1]   | 3             | any                   | amount × rate, no minimum        |
+  | [C2]   | not 3         | below minimum         | contract minimum commission      |
+  | [C3]   | not 3         | at or above minimum   | amount × rate, half to even, 2dp |
+open_brackets: 0
+approved_by: Pricing domain expert

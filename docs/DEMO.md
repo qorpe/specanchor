@@ -30,9 +30,12 @@ On a real system that number will NOT be 100%, and that honesty is the product."
 dotnet run --project core/cli/SpecAnchor.Cli -- gate --discovery rig/legacy-factoring/discovery --src rig/legacy-factoring/src --sql rig/legacy-factoring/sql --schemas core/schemas
 ```
 
-*"Seven gates over the rule catalog: every source reference resolves to a real symbol,
+*"Eight gates over the catalog: every source reference resolves to a real symbol,
 no code identifier leaks into a business sentence, every 'evidenced' claim cites a test
-that exists, the arithmetic of every test record adds up. Locally, in a second — the
+that exists, the arithmetic of every test record adds up, and every spec clause is
+cited by a test. The NOT READY line is SPEC-0001 — the commission spec still carries
+two open questions nobody has decided, so it cannot enter a sprint, and the gate says so
+without calling it broken. Locally, in a second — the
 same code CI runs, so local and CI cannot disagree."*
 
 ## 3. The gate goes red — on purpose (1 min)

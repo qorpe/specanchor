@@ -1,0 +1,14 @@
+spec_id: SPEC-0001
+schemaVersion: 1
+rule_ids: [RULE-0042]
+notation: ears
+body: |
+  [C1] When a domestic recourse factoring transaction is priced, the system shall
+  calculate commission as invoice amount × contract commission rate, rounded to two
+  decimals [OPEN — rounding mode: the application rounds half to even, the procedure
+  half away from zero; pending expert decision].
+  [C2] When the calculated commission is lower than the contract minimum commission,
+  the system shall apply the contract minimum commission instead.
+  [C3] Where contract type is 3, the system shall [OPEN — pending expert decision: the
+  legacy system skips the minimum and nobody asked so far could explain why].
+open_brackets: 2

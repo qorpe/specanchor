@@ -91,9 +91,9 @@ public static class IndexTools
     }
 
     [McpServerTool]
-    [Description("Run all catalog gates over a discovery folder; returns the findings. The skill's self-validation and CI run this same code.")]
+    [Description("Run all catalog gates over a discovery folder; returns the findings and, per spec that passed, its Definition of Ready. The skill's self-validation and CI run this same code.")]
     public static string Gate(
-        [Description("Discovery folder holding rules/, terms/ and tests/")] string discoveryDir,
+        [Description("Discovery folder holding rules/, terms/, tests/ and specs/")] string discoveryDir,
         [Description("Directory containing the C# sources")] string srcDir,
         [Description("Directory containing the T-SQL scripts")] string sqlDir,
         [Description("Directory containing the artefact schemas")] string schemasDir)

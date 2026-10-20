@@ -75,6 +75,7 @@ sample_size  integer
 result       { passed, failed }
 failures     description, linked to open_questions where relevant
 tolerance    reference to the comparison policy used
+spec_clauses[] optional — the spec clauses this test proves, as SPEC-nnnn.Cn
 ```
 
 ### spec
@@ -83,10 +84,12 @@ tolerance    reference to the comparison policy used
 spec_id       SPEC-nnnn
 rule_ids[]    one or more
 notation      ears | gherkin | dmn
-body          the criteria
+body          the criteria; each criterion, scenario or table row marked [Cn]
 open_brackets integer — must be 0 before a spec is releasable
-approved_by   domain expert, required
+approved_by   domain expert, required before sprint entry (Definition of Ready)
 ```
+
+**Invariants, enforced by the spec gate (§6):** every `rule_ids` entry resolves to a rule in the catalog (SA0501); `open_brackets` equals the `[OPEN` brackets actually in the body (SA0502); while a rule's `disposition` is null, its specs carry at least as many open brackets as it has `open_questions` — a spec may not answer what no domain expert has decided (SA0503); the body declares at least one clause (SA0504), none twice (SA0505), and every clause is cited by a char-test's `spec_clauses` (SA0506), every citation resolving to a declared clause (SA0303). `approved_by` stays optional in the schema: a spec without it is a valid artefact that is not ready yet, and the gate reports it that way.
 
 ### comparison policy
 
@@ -175,6 +178,7 @@ Output: a parity report — sample size, pass/fail, failures grouped by cause, c
 |---|---|---|---|
 | Source reference | `source_ref` against real symbols | CLI check | on catalog production |
 | Statement quality | rule statement against glossary `aliases_in_code` — a rule sentence may not contain code identifiers | CLI check | on catalog production |
+| Spec | spec against its rules (exist; undecided open questions stay open brackets), its own bracket count, and the tests that cite its clauses | CLI check | on catalog production |
 | Touch | if a rule's `source_ref` changed in a PR but the rule and its test did not | CLI check in CI | every PR |
 | Boundary | code dependencies against context map | NetArchTest / ArchUnitNET | every PR |
 | Drift | code against spec — signatures, fields, rule branches | analyzer + CLI | every PR |
@@ -183,6 +187,8 @@ Output: a parity report — sample size, pass/fail, failures grouped by cause, c
 **Distribution:** as a NuGet analyzer package plus a shared CI template. Analyzers surface violations in the IDE for free — no separate editor plugin.
 
 **Mutation scope:** the domain and calculation core only. Repository-wide mutation testing makes CI take hours and gets switched off in month three.
+
+**Definition of Ready is reported, not gated.** For every spec that passes the spec gate, `specanchor gate` prints READY or NOT READY with each unmet condition (open brackets, no `approved_by`, a linked rule without a disposition). A spec that is not ready yet is a correct artefact in a state, so the exit code does not change; enforcing it at sprint entry needs a story → spec link no artefact carries yet (REVISIONS #17).
 
 **Bypass:** recorded, owned, and given an expiry. Never silent.
 
@@ -229,7 +235,7 @@ In a consuming project:
 
 ```
 .specanchor/config.yaml        adapter, endpoint, comparison policy, thresholds
-discovery/<context>/      rules, glossary, tests, gaps
+discovery/<context>/      rules, glossary, tests, specs, gaps
 src/                      untouched
 ```
 

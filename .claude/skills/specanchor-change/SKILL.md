@@ -27,7 +27,7 @@ to report, not a gap to fill from taste.
 
 ## What is different here, and why
 
-**The rig is the test, not a fixture.** Four planted traps with a written answer key. A
+**The rig is the test, not a fixture.** Five planted traps with a written answer key. A
 change to any detection path is evidence-free until it moves a trap's result: the trap that
 was missed is now found, or the trap that was found is still found after a refactor. Cycle
 §4 — write the test, then put the fault back and watch it go red — is literally what

@@ -115,7 +115,7 @@ Acceptance criteria in EARS notation:
 > When the calculated commission is lower than the contract minimum commission, the system shall apply the contract minimum commission instead.
 > Where contract type is 3, the system shall **[OPEN — pending expert decision]**.
 
-The bracketed gap stays visible in the spec. Do not resolve it yourself. A spec that honestly carries its unknowns is the whole argument.
+The bracketed gap stays visible in the spec. Do not resolve it yourself. A spec that honestly carries its unknowns is the whole argument. The rig carries this spec, clause-marked and cited by `CHAR-0042`, as `rig/legacy-factoring/discovery/specs/SPEC-0001.yaml`; resolving the bracket without a disposition on the rule is Trap E, and the spec gate rejects it.
 
 **Stage 4 — designed**
 Which aggregate owns the commission calculation, why pricing is a separate bounded context from assignment, recorded as an ADR. One page.

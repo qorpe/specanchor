@@ -146,6 +146,87 @@ public static class ArtefactValidator
         return findings;
     }
 
+    /// <summary>
+    /// Validates one spec (YAML or JSON) against the schema and the rule catalog: every
+    /// rule_id resolves, open_brackets equals the brackets actually in the body, the body
+    /// declares its clauses exactly once each, and the spec carries at least as many open
+    /// brackets as its undecided rules carry open questions — a spec may not answer what no
+    /// domain expert has decided. Clause citation by tests is a catalog-wide check and lives
+    /// in the gate runner.
+    /// </summary>
+    /// <param name="documentText">The spec, YAML or JSON.</param>
+    /// <param name="specSchemaPath">Path to spec.schema.v1.json.</param>
+    /// <param name="catalogRules">The rules in the catalog.</param>
+    /// <returns>Findings; empty when the spec may enter the catalog.</returns>
+    public static IReadOnlyList<Finding> ValidateSpec(
+        string documentText,
+        string specSchemaPath,
+        IReadOnlyList<CatalogRule> catalogRules)
+    {
+        if (!TryParse(documentText, out var node, out var parseError))
+        {
+            return [new Finding("error", "SA0001", "$", $"document does not parse: {parseError}")];
+        }
+
+        var findings = new List<Finding>();
+        findings.AddRange(EvaluateSchema(node, specSchemaPath));
+        if (findings.Count > 0)
+        {
+            return findings;
+        }
+
+        var ruleIds = node!["rule_ids"]!.AsArray();
+        var undecidedQuestions = 0;
+        for (var i = 0; i < ruleIds.Count; i++)
+        {
+            var ruleId = ruleIds[i]!.GetValue<string>();
+            var rule = catalogRules.FirstOrDefault(r => r.RuleId == ruleId);
+            if (rule is null)
+            {
+                findings.Add(new Finding("error", "SA0501", $"$.rule_ids[{i}]",
+                    $"rule '{ruleId}' is not in the catalog — a spec must be derived from an existing rule"));
+            }
+            else if (rule.Disposition is null)
+            {
+                undecidedQuestions += rule.OpenQuestions;
+            }
+        }
+
+        var body = node["body"]!.GetValue<string>();
+        var declared = AsInt(node["open_brackets"]!);
+        var actual = SpecBody.CountOpenBrackets(body);
+        if (declared != actual)
+        {
+            findings.Add(new Finding("error", "SA0502", "$.open_brackets",
+                $"open_brackets says {declared} but the body carries {actual} [OPEN bracket(s) — " +
+                "the count is what Definition of Ready reads, so it must be the real one"));
+        }
+
+        if (actual < undecidedQuestions)
+        {
+            findings.Add(new Finding("error", "SA0503", "$.body",
+                $"the body carries {actual} open bracket(s) but its rules carry {undecidedQuestions} open " +
+                "question(s) no domain expert has decided (disposition null) — the spec answers what nobody " +
+                "decided; keep each one as an [OPEN — ...] bracket until the rule's disposition is set"));
+        }
+
+        var clauses = SpecBody.Clauses(body);
+        if (clauses.Count == 0)
+        {
+            findings.Add(new Finding("error", "SA0504", "$.body",
+                "the body declares no clause — mark each criterion, scenario or table row with [Cn] " +
+                "so a test can cite it; an uncitable spec cannot be proven"));
+        }
+
+        foreach (var duplicate in clauses.GroupBy(c => c, StringComparer.Ordinal).Where(g => g.Count() > 1))
+        {
+            findings.Add(new Finding("error", "SA0505", $"$.body[{duplicate.Key}]",
+                $"clause {duplicate.Key} is declared {duplicate.Count()} times — a citation of it would be ambiguous"));
+        }
+
+        return findings;
+    }
+
     private static HashSet<string> KnownIdentifiers(CSharpIndex csharpIndex, SqlIndex sqlIndex)
     {
         var known = new HashSet<string>(StringComparer.Ordinal);
@@ -197,12 +278,15 @@ public static class ArtefactValidator
     private static bool TryParse(string text, out JsonNode? node, out string? error) =>
         ArtefactDocument.TryParse(text, out node, out error);
 
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, JsonSchema> SchemaCache = new();
+    // Lazy, not a bare GetOrAdd factory: GetOrAdd may run the factory twice under
+    // contention, and JsonSchema.FromText registers the schema's $id globally — the second
+    // registration throws. Two gate runs in parallel (tests, an MCP client) hit exactly that.
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, Lazy<JsonSchema>> SchemaCache = new();
 
     private static IEnumerable<Finding> EvaluateSchema(JsonNode? node, string schemaPath)
     {
         var schema = SchemaCache.GetOrAdd(Path.GetFullPath(schemaPath),
-            p => JsonSchema.FromText(File.ReadAllText(p)));
+            p => new Lazy<JsonSchema>(() => JsonSchema.FromText(File.ReadAllText(p)))).Value;
         var element = System.Text.Json.JsonSerializer.SerializeToElement(node);
         var result = schema.Evaluate(element, new EvaluationOptions { OutputFormat = OutputFormat.List });
         if (result.IsValid)
@@ -319,3 +403,9 @@ public static class ArtefactValidator
 /// <param name="Path">JSON path of the offending value.</param>
 /// <param name="Message">What is wrong and what the fix must teach.</param>
 public sealed record Finding(string Severity, string Code, string Path, string Message);
+
+/// <summary>What the spec checks need to know about one rule in the catalog.</summary>
+/// <param name="RuleId">The rule's id.</param>
+/// <param name="Disposition">keep, change or retire; null while no domain expert has decided.</param>
+/// <param name="OpenQuestions">How many open_questions the rule carries.</param>
+public sealed record CatalogRule(string RuleId, string? Disposition, int OpenQuestions);

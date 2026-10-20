@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://specanchor.dev/schemas/spec/v1.json",
   "title": "specanchor spec v1",
-  "description": "A specification derived from one or more approved rules. open_brackets counts unresolved [OPEN — ...] placeholders in the body; it must be 0 before the spec is releasable, and a spec with open brackets cannot enter a sprint (Definition of Ready).",
+  "description": "A specification derived from one or more approved rules. open_brackets counts unresolved [OPEN — ...] placeholders in the body; it must be 0 before the spec is releasable, and a spec with open brackets cannot enter a sprint (Definition of Ready). Each criterion, scenario or table row in the body is marked [Cn] so a characterization test can cite it as SPEC-nnnn.Cn.",
   "type": "object",
   "additionalProperties": false,
   "required": ["spec_id", "rule_ids", "notation", "body", "open_brackets", "schemaVersion"],
@@ -18,7 +18,7 @@
     "body": {
       "type": "string",
       "minLength": 1,
-      "description": "The acceptance criteria. One screen maximum — exceeding the limit is a generation-time failure."
+      "description": "The acceptance criteria, each clause marked [Cn] (C1, C2, ...) exactly once. One screen maximum — exceeding the limit is a generation-time failure."
     },
     "open_brackets": {
       "type": "integer",

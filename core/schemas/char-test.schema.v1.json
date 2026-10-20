@@ -33,6 +33,12 @@
     "tolerance": {
       "type": "string",
       "description": "Reference to the comparison policy used."
+    },
+    "spec_clauses": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^SPEC-[0-9]{4}\\.C[0-9]+$" },
+      "description": "Optional. The spec clauses this test proves, as SPEC-nnnn.Cn. Each must resolve to a clause a spec declares in its body; every declared clause must be cited by at least one test."
     }
   }
 }

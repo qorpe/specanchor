@@ -11,7 +11,7 @@ namespace SpecAnchor.Gates;
 /// what `specanchor gate` executes, and CI runs exactly the same code, so local and CI
 /// can never disagree.
 /// Layout expected under the discovery root, at any depth: rules/*.yaml|yml|json,
-/// terms/*.yaml|yml|json, tests/*.yaml|yml|json — one artefact per file.
+/// terms/*.yaml|yml|json, tests/*.yaml|yml|json, specs/*.yaml|yml|json — one artefact per file.
 /// </summary>
 public static class GateRunner
 {
@@ -24,6 +24,7 @@ public static class GateRunner
         var rules = LoadArtefacts(input.DiscoveryRoot, "rules", findings);
         var terms = LoadArtefacts(input.DiscoveryRoot, "terms", findings);
         var tests = LoadArtefacts(input.DiscoveryRoot, "tests", findings);
+        var specs = LoadArtefacts(input.DiscoveryRoot, "specs", findings);
 
         var aliases = terms
             .SelectMany(t => t.Node["aliases_in_code"]?.AsArray() ?? [])
@@ -43,6 +44,7 @@ public static class GateRunner
         var ruleSchema = Path.Combine(input.SchemasDirectory, "rule.schema.v1.json");
         var ledgerSchema = Path.Combine(input.SchemasDirectory, "ledger-term.schema.v1.json");
         var charTestSchema = Path.Combine(input.SchemasDirectory, "char-test.schema.v1.json");
+        var specSchema = Path.Combine(input.SchemasDirectory, "spec.schema.v1.json");
 
         foreach (var rule in rules)
         {
@@ -82,6 +84,8 @@ public static class GateRunner
             }
         }
 
+        var readiness = CheckSpecs(rules, tests, specs, specSchema, findings);
+
         if (input.ChangedFiles is not null)
         {
             findings.AddRange(TouchGate.Check(input.ChangedFiles, TouchSubjects(rules, tests)));
@@ -90,7 +94,123 @@ public static class GateRunner
         return new GateReport(findings
             .OrderBy(f => f.File, StringComparer.Ordinal)
             .ThenBy(f => f.Finding.Code, StringComparer.Ordinal)
-            .ToList());
+            .ThenBy(f => f.Finding.Path, StringComparer.Ordinal)
+            .ToList())
+        {
+            Readiness = readiness,
+        };
+    }
+
+    /// <summary>
+    /// The spec gate: rule → spec → test. Each spec is validated against the catalog, every
+    /// clause it declares must be cited by a test, and every clause a test cites must be
+    /// declared by a spec. Specs that pass are then measured against Definition of Ready.
+    /// </summary>
+    private static List<SpecReadiness> CheckSpecs(
+        List<(string File, string Text, JsonNode Node)> rules,
+        List<(string File, string Text, JsonNode Node)> tests,
+        List<(string File, string Text, JsonNode Node)> specs,
+        string specSchema,
+        List<GateFinding> findings)
+    {
+        var catalogRules = rules
+            .Select(r => new CatalogRule(
+                Text(r.Node["rule_id"]) ?? string.Empty,
+                Text(r.Node["disposition"]),
+                r.Node["open_questions"] is JsonArray questions ? questions.Count : 0))
+            .ToList();
+
+        var cited = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var test in tests)
+        {
+            foreach (var clause in Clauses(test.Node))
+            {
+                cited.Add(clause);
+            }
+        }
+
+        var declared = new HashSet<string>(StringComparer.Ordinal);
+        var valid = new List<(string File, JsonNode Node)>();
+        foreach (var spec in specs)
+        {
+            var specFindings = ArtefactValidator.ValidateSpec(spec.Text, specSchema, catalogRules);
+            findings.AddRange(specFindings.Select(f => new GateFinding("spec", spec.File, f)));
+
+            // Read tolerantly: a spec that failed its schema is already rejected above and
+            // must not crash the run that reports it.
+            var specId = Text(spec.Node["spec_id"]) ?? string.Empty;
+            var body = Text(spec.Node["body"]) ?? string.Empty;
+            var uncited = false;
+            foreach (var clause in SpecBody.Clauses(body).Distinct(StringComparer.Ordinal))
+            {
+                declared.Add($"{specId}.{clause}");
+                if (!cited.Contains($"{specId}.{clause}"))
+                {
+                    uncited = true;
+                    findings.Add(new GateFinding("spec", spec.File, new Finding(
+                        "error", "SA0506", $"$.body[{clause}]",
+                        $"clause {specId}.{clause} is cited by no test — a clause nothing proves is a " +
+                        "claim, not a specification; cite it from the test that proves it (spec_clauses)")));
+                }
+            }
+
+            if (specFindings.Count == 0 && !uncited)
+            {
+                valid.Add((spec.File, spec.Node));
+            }
+        }
+
+        foreach (var test in tests)
+        {
+            var clauses = Clauses(test.Node);
+            for (var i = 0; i < clauses.Count; i++)
+            {
+                var clause = clauses[i];
+                if (!declared.Contains(clause))
+                {
+                    findings.Add(new GateFinding("char-test", test.File, new Finding(
+                        "error", "SA0303", $"$.spec_clauses[{i}]",
+                        $"clause '{clause}' is declared by no spec in the catalog — the citation does not resolve")));
+                }
+            }
+        }
+
+        return valid.Select(s => Readiness(s.File, s.Node, catalogRules)).ToList();
+    }
+
+    private static string? Text(JsonNode? node) =>
+        node is JsonValue value && value.TryGetValue<string>(out var text) ? text : null;
+
+    private static List<string> Clauses(JsonNode test) =>
+        test["spec_clauses"] is JsonArray clauses
+            ? clauses.Select(Text).Where(c => c is not null).Select(c => c!).ToList()
+            : [];
+
+    /// <summary>Definition of Ready (team-operating-agreement §2), for a spec that passed every gate.</summary>
+    private static SpecReadiness Readiness(string file, JsonNode spec, IReadOnlyList<CatalogRule> catalogRules)
+    {
+        var reasons = new List<string>();
+        // A spec that reached here passed SA0502, so its declared count is the body's count.
+        var openBrackets = SpecBody.CountOpenBrackets(spec["body"]!.GetValue<string>());
+        if (openBrackets > 0)
+        {
+            reasons.Add($"{openBrackets} open bracket(s) in the body");
+        }
+
+        if (string.IsNullOrWhiteSpace(spec["approved_by"]?.GetValue<string>()))
+        {
+            reasons.Add("no approved_by — the domain expert has not approved it");
+        }
+
+        foreach (var ruleId in spec["rule_ids"]!.AsArray().Select(r => r!.GetValue<string>()))
+        {
+            if (catalogRules.First(r => r.RuleId == ruleId).Disposition is null)
+            {
+                reasons.Add($"{ruleId} has no disposition");
+            }
+        }
+
+        return new SpecReadiness(file, spec["spec_id"]!.GetValue<string>(), reasons.Count == 0, reasons);
     }
 
     private static string GateFor(string code) => code switch
@@ -163,7 +283,7 @@ public static class GateRunner
 }
 
 /// <summary>Input to a gate run.</summary>
-/// <param name="DiscoveryRoot">The discovery folder holding rules/, terms/ and tests/.</param>
+/// <param name="DiscoveryRoot">The discovery folder holding rules/, terms/, tests/ and specs/.</param>
 /// <param name="SchemasDirectory">Directory containing the artefact schemas.</param>
 /// <param name="CSharpIndex">The C# index of the system under discovery.</param>
 /// <param name="SqlIndex">The SQL index of the system under discovery.</param>
@@ -179,6 +299,13 @@ public sealed record GateInput(
 /// <param name="Findings">All findings across all gates, sorted.</param>
 public sealed record GateReport(IReadOnlyList<GateFinding> Findings)
 {
+    /// <summary>
+    /// Definition of Ready, per spec that passed every gate. Reported beside the findings,
+    /// never among them: a spec that is not ready yet is a correct artefact in a state,
+    /// not a defect, and does not change the exit code.
+    /// </summary>
+    public IReadOnlyList<SpecReadiness> Readiness { get; init; } = [];
+
     /// <summary>True when no gate produced a finding.</summary>
     public bool IsClean => Findings.Count == 0;
 
@@ -187,7 +314,14 @@ public sealed record GateReport(IReadOnlyList<GateFinding> Findings)
 }
 
 /// <summary>One finding attributed to a gate and a file.</summary>
-/// <param name="Gate">source-ref, statement-quality, schema, ledger, char-test, evidence or touch.</param>
+/// <param name="Gate">source-ref, statement-quality, schema, ledger, char-test, evidence, spec or touch.</param>
 /// <param name="File">The artefact file, relative to the discovery root.</param>
 /// <param name="Finding">The underlying validator finding.</param>
 public sealed record GateFinding(string Gate, string File, Finding Finding);
+
+/// <summary>Whether one spec meets the Definition of Ready (team-operating-agreement §2).</summary>
+/// <param name="File">The spec file, relative to the discovery root.</param>
+/// <param name="SpecId">The spec's id.</param>
+/// <param name="Ready">True when nothing below stands between the spec and a sprint.</param>
+/// <param name="Reasons">Each unmet Definition of Ready condition; empty when ready.</param>
+public sealed record SpecReadiness(string File, string SpecId, bool Ready, IReadOnlyList<string> Reasons);
