@@ -9,3 +9,4 @@ failures: >
   the behaviour described in RULE-0042.open_questions.
 tolerance: comparison-policy v1
 schemaVersion: 1
+spec_clauses: [SPEC-0001.C1, SPEC-0001.C2, SPEC-0001.C3]

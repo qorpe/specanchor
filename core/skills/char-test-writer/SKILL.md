@@ -16,6 +16,9 @@ at a time.
 - A runnable test (replay preferred, synthetic where history is thin).
 - A char-test record conforming to `core/schemas/char-test.schema.v1.json`,
   written to `discovery/<context>/tests/CHAR-nnnn.yaml`, with `target: legacy`.
+  When the rule already has a spec, list in `spec_clauses` the clauses
+  (`SPEC-nnnn.Cn`) this test exercises — the spec gate rejects any clause no test
+  cites.
 
 ## Procedure
 
@@ -40,6 +43,7 @@ at a time.
 Run the record through the artefact validator before returning:
 
 - **SA0301 (rule_id not in the catalog): the record is REJECTED.**
+- **SA0303 (a cited spec clause is declared by no spec): the record is REJECTED.**
 - **SA0302 (passed + failed ≠ sample_size): the record is REJECTED** — an
   arithmetic hole here means the run report cannot be trusted.
 - **SA0002 (schema violation): fix and revalidate.**

@@ -14,8 +14,8 @@ const string Usage = """
       specanchor index --src <dir> --sql <dir> --out <dir>
           build the deterministic indexes and the table access matrix
       specanchor gate  --discovery <dir> --src <dir> --sql <dir> --schemas <dir> [--changed <file>]
-          run all catalog gates locally; --changed (newline-separated file list)
-          enables the touch gate
+          run all catalog gates locally and report each spec's Definition of Ready;
+          --changed (newline-separated file list) enables the touch gate
       specanchor scaffold --rule <file> --out <dir>
           generate the red acceptance test and the skeleton from one rule card
       specanchor mcp
@@ -84,6 +84,15 @@ try
                 Console.WriteLine(
                     $"{finding.Finding.Severity.ToUpperInvariant()}  {finding.Gate}  " +
                     $"{finding.File} at {finding.Finding.Path}: {finding.Finding.Message}");
+            }
+
+            // Definition of Ready is a state, not a finding: printed beside the findings,
+            // never counted in the exit code.
+            foreach (var spec in report.Readiness)
+            {
+                Console.WriteLine(spec.Ready
+                    ? $"READY      {spec.SpecId}  {spec.File}"
+                    : $"NOT READY  {spec.SpecId}  {spec.File}: {string.Join("; ", spec.Reasons)}");
             }
 
             Console.WriteLine(report.IsClean

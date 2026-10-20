@@ -50,6 +50,30 @@ Do not "fix" these traps. They are the product.
   RegisterTransfer, TemlikKayit]` and a `not_to_be_confused_with` pointing at
   CarryOverService.Devir (Accounting). Two separate glossary entries — not one, not three.
 
+## Trap E — A spec that answers what nobody decided
+
+- `trap-specimens/SPEC-0002.yaml` is a DMN decision table for the commission rule
+  (RULE-0042). Its contract-type-3 row states "no minimum commission" as plain
+  behaviour, and its rounding row states half-to-even, with no `[OPEN — ...]` bracket
+  anywhere. It counts its own brackets honestly (`open_brackets: 0`) and even carries an
+  `approved_by`. It reads as finished.
+- But RULE-0042 still has two open questions (Trap A's rounding, Trap B's contract type
+  3) and `disposition: null`: no domain expert has decided either. The spec has quietly
+  turned Trap B's unexplained legacy behaviour into the requirement, which is exactly
+  what the discovery playbook forbids ("Do not resolve it yourself").
+- Its clauses `[C1]`–`[C3]` are cited by no characterization test, so nothing proves
+  them — the rule → spec → test chain is broken at the second link.
+- The specimen lives OUTSIDE `discovery/` on purpose: the rig's discovery sample must
+  stay green, and the honest spec for the same rule, `discovery/specs/SPEC-0001.yaml`,
+  keeps both questions as open brackets and is cited clause by clause by CHAR-0042.
+- Expected outcome: with the specimen dropped into `discovery/specs/`, the spec gate
+  REJECTS it twice — once because it carries fewer open brackets (0) than its rule has
+  undecided open questions (2), and once per clause no test cites. Rejected, not
+  flagged, and not merely "not ready": an expert's signature on the spec does not
+  answer a rule's open question — the rule's `disposition` and `decided_by` do.
+  SPEC-0001, meanwhile, passes every gate and is reported NOT READY for a sprint (open
+  brackets, no approval, no disposition), which is the correct state for it.
+
 ## Bonus — Rule hiding outside application code
 
 - `sql/003_trg_Invoice_RiskLimit.sql`: the risk-limit check lives in an AFTER INSERT

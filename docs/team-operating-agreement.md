@@ -37,6 +37,8 @@ Sprints, backlog, refinement, review and retro all stay. Two things change.
 - its specification contains no open bracket
 - the domain expert has approved the specification
 
+`specanchor gate` reports every specification that passes the gates as READY or NOT READY against the last three conditions, naming each one unmet. It does not decide sprint entry: the story → specification link lives in the backlog, not in an artefact the gate reads.
+
 ### Definition of Done — a story is not done unless
 
 - the acceptance test was red before it was green

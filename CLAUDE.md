@@ -17,7 +17,7 @@ They already say most of what a change needs to respect, and none of it is repea
 | `docs/toolset-spec.md` | what each component is and what it is not |
 | `docs/team-operating-agreement.md` | Definition of Ready / Done, the two paths, the agent rules |
 | `docs/REVISIONS.md` | **the ledger.** What is owed, where it lands, what shipped |
-| `rig/legacy-factoring/TRAPS.md` | the answer key. Four planted traps the whole chain is judged against |
+| `rig/legacy-factoring/TRAPS.md` | the answer key. Five planted traps the whole chain is judged against |
 
 ## The line that governs everything
 
@@ -79,10 +79,10 @@ worth anything.
 
 ## The rig is the acceptance test
 
-`rig/legacy-factoring` is not a fixture directory. It is a fake legacy system with four
+`rig/legacy-factoring` is not a fixture directory. It is a fake legacy system with five
 planted traps and a written answer key, and the chain is judged by whether it finds them.
 A change to detection that does not move a trap's result has not been shown to do anything.
-When adding a capability, ask whether it needs a fifth trap — and if it does, plant it in
+When adding a capability, ask whether it needs another trap — and if it does, plant it in
 `TRAPS.md` with its expected finding *before* building the detector.
 
 ## Every artefact is in English
